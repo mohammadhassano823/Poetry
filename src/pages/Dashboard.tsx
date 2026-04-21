@@ -23,10 +23,12 @@ import {
 import { cn } from '@/src/lib/utils';
 import { useAppContext } from '@/src/context/AppContext';
 import { explainPoetry, PoetryAnalysis } from '@/src/services/poetryService';
+import { LANGUAGES } from '@/src/constants/languages';
 
 export const Dashboard: React.FC = () => {
   const { user, consumeCredit, addBlog } = useAppContext();
   const [input, setInput] = useState('');
+  const [targetLanguage, setTargetLanguage] = useState('English');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<PoetryAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,7 @@ export const Dashboard: React.FC = () => {
     setIsAnalyzing(true);
     setError(null);
     try {
-      const result = await explainPoetry(input);
+      const result = await explainPoetry(input, targetLanguage);
       setAnalysis(result);
       consumeCredit();
     } catch (err) {
@@ -118,30 +120,49 @@ export const Dashboard: React.FC = () => {
            <span>Start a new analysis</span>
         </div>
         
-        <div className="relative">
-          <textarea 
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Paste a poem here, or enter a title..."
-            className="w-full min-h-[160px] rounded-xl bg-slate-50 border border-slate-200 p-6 text-lg text-slate-800 placeholder:text-slate-400 focus:border-indigo-400 outline-none transition-all resize-none serif italic"
-          />
-          <button 
-            onClick={handleAnalyze}
-            disabled={isAnalyzing || !input.trim()}
-            className="absolute bottom-4 right-4 flex h-12 items-center gap-2 rounded-lg gradient-bg px-8 font-bold text-white transition-all shadow-md shadow-indigo-100 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
-          >
-            {isAnalyzing ? (
-              <div className="flex items-center gap-2">
-                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-                 Analyzing...
-              </div>
-            ) : (
-              <>
-                Explain Poetry
-                <Send className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
-              </>
-            )}
-          </button>
+        <div className="flex flex-col md:flex-row md:items-end gap-6 relative">
+          <div className="flex-1">
+            <textarea 
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Paste a poem here, or enter a title..."
+              className="w-full min-h-[160px] rounded-xl bg-slate-50 border border-slate-200 p-6 text-lg text-slate-800 placeholder:text-slate-400 focus:border-indigo-400 outline-none transition-all resize-none serif italic"
+            />
+          </div>
+          
+          <div className="w-full md:w-64 space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+               <Languages className="h-3 w-3" />
+               Target Language
+            </label>
+            <div className="relative group">
+              <select 
+                value={targetLanguage}
+                onChange={(e) => setTargetLanguage(e.target.value)}
+                className="w-full h-14 rounded-xl bg-slate-50 border border-slate-200 pl-5 pr-10 text-sm font-bold text-slate-700 appearance-none focus:border-indigo-400 outline-none transition-all cursor-pointer"
+              >
+                {LANGUAGES.map(lang => (
+                  <option key={lang} value={lang}>{lang}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none transition-transform group-hover:text-indigo-600" />
+            </div>
+            
+            <button 
+              onClick={handleAnalyze}
+              disabled={isAnalyzing || !input.trim()}
+              className="w-full h-14 flex items-center justify-center gap-2 rounded-xl gradient-bg font-bold text-white transition-all shadow-lg shadow-indigo-100 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group px-6"
+            >
+              {isAnalyzing ? (
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Analyze
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {error && <p className="mt-4 text-sm font-medium text-red-500">{error}</p>}
